@@ -1,7 +1,8 @@
 import os
 from openai import OpenAI
+from prompts import system_prompt
 from dotenv import load_dotenv
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionUserMessageParam
+from openai.types.chat import ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 from openai.types.completion_usage import CompletionUsage
 import argparse
 
@@ -43,6 +44,7 @@ def main():
     )
 
     messages:list[ChatCompletionMessageParam] = [
+        ChatCompletionSystemMessageParam(role="system", content=system_prompt),
         ChatCompletionUserMessageParam(role="user", content=args.user_prompt),
     ]
     response = client.chat.completions.create(
