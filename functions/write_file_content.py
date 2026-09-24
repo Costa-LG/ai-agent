@@ -5,7 +5,6 @@ def write_file(working_directory: str, file_path: str, content: str) -> str:
         work_dir: str = path.abspath(working_directory)
         target_file: str = path.normpath(path.join(work_dir, file_path))
 
-        print(target_file)
         valid_target_dir: bool = path.commonpath([work_dir, target_file]) == work_dir
         if not valid_target_dir:
             return f'Error: Cannot write "{file_path}" as it is outside the permitted working directory'
