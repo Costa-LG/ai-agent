@@ -1,6 +1,27 @@
 from os import path
 import subprocess
 
+schema_run_python_file = {
+    "type": "function",
+    "function": {
+        "name": "run_python_file",
+        "description": "Execute a python module in a specified directory relative to the working directory",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "Module": {
+                    "type": "string",
+                    "description": "Module path to be executed, relative to the working directory (default is the working directory itself)",
+                },
+                "Arguments": {
+                    "type": "list[string] | None",
+                    "description": "List of arguments to be passet to the python module.",
+                },
+            },
+        },
+    },
+}
+
 def is_python(path: str) -> bool:
     return path.split(".")[-1] == "py"
 

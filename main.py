@@ -1,9 +1,11 @@
 import os
+import json
 from openai import OpenAI
 from prompts import system_prompt
 from dotenv import load_dotenv
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 from openai.types.completion_usage import CompletionUsage
+from call_function import available_functions
 import argparse
 
 def load_api_key() -> str:
@@ -50,11 +52,19 @@ def main():
     response = client.chat.completions.create(
         model="openrouter/free",
         messages=messages,
+        tools=available_functions,
     )
 
-    if args.verbose:
-        print(format_use(args.user_prompt, response.usage, response.choices[0].message.content))
+    message = response.choices[0].message
+
+    if message.tool_calls:
+        for tool_call in message.tool_calls:
+            print(tool_call.function.name)
+            print(json.loads(tool_call.function.arguments))
     else:
-        print(response.choices[0].message.content)
+        if args.verbose:
+            print(format_use(args.user_prompt, response.usage, message.content))
+        else:
+            print(message.content)
 if __name__ == "__main__":
     main()

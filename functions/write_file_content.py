@@ -1,5 +1,26 @@
 from os import path, makedirs
 
+schema_write_python_file = {
+    "type": "function",
+    "function": {
+        "name": "write_python_file",
+        "description": "Write content in a python module in a specified directory relative to the working directory",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "Module": {
+                    "type": "string",
+                    "description": "Module path to be overwritten, relative to the working directory (default is the working directory itself)",
+                },
+                "Content": {
+                    "type": "string",
+                    "description": "Python module content to be written.",
+                },
+            },
+        },
+    },
+}
+
 def write_file(working_directory: str, file_path: str, content: str) -> str:
     try:
         work_dir: str = path.abspath(working_directory)
