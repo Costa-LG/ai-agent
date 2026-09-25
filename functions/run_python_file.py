@@ -9,15 +9,17 @@ schema_run_python_file = {
         "parameters": {
             "type": "object",
             "properties": {
-                "Module": {
+                "file_path": {
                     "type": "string",
-                    "description": "Module path to be executed, relative to the working directory (default is the working directory itself)",
+                    "description": "Python file path to execute, relative to the working directory",
                 },
-                "Arguments": {
-                    "type": "list[string] | None",
-                    "description": "List of arguments to be passet to the python module.",
+                "args": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Optional arguments to pass to the Python file",
                 },
             },
+            "required": ["file_path"],
         },
     },
 }
