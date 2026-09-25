@@ -1,19 +1,20 @@
 from os import path
 from config import MAX_CHARS
 
-schema_get_files_content = {
+schema_get_file_content = {
     "type": "function",
     "function": {
-        "name": "get_files_content",
-        "description": "Lists content of a file in a specified directory relative to the working directory",
+        "name": "get_file_content",
+        "description": "Read the content of a file relative to the working directory",
         "parameters": {
             "type": "object",
             "properties": {
-                "File": {
+                "file_path": {
                     "type": "string",
-                    "description": "File path to get the content from, relative to the working directory (default is the working directory itself)",
+                    "description": "File path to read, relative to the working directory",
                 },
             },
+            "required": ["file_path"],
         },
     },
 }

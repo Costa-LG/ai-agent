@@ -1,22 +1,23 @@
 from os import path, makedirs
 
-schema_write_python_file = {
+schema_write_file = {
     "type": "function",
     "function": {
-        "name": "write_python_file",
-        "description": "Write content in a python module in a specified directory relative to the working directory",
+        "name": "write_file",
+        "description": "Write content to a file relative to the working directory",
         "parameters": {
             "type": "object",
             "properties": {
-                "Module": {
+                "file_path": {
                     "type": "string",
-                    "description": "Module path to be overwritten, relative to the working directory (default is the working directory itself)",
+                    "description": "File path to write, relative to the working directory",
                 },
-                "Content": {
+                "content": {
                     "type": "string",
-                    "description": "Python module content to be written.",
+                    "description": "Content to write to the file",
                 },
             },
+            "required": ["file_path", "content"],
         },
     },
 }
