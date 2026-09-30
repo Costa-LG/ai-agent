@@ -1,8 +1,10 @@
+from collections.abc import Callable
+import sys
 import os
 from openai import OpenAI
 from prompts import system_prompt
 from dotenv import load_dotenv
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
+from openai.types.chat import ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam, ChatCompletionToolMessageParam
 from openai.types.completion_usage import CompletionUsage
 from call_function import available_functions, call_function
 import argparse
@@ -34,40 +36,61 @@ def load_parser() -> argparse.Namespace:
 
     return parser.parse_args()
 
+def chat() -> Callable:
+    count:int = 0
+
+    def inner_func(messages, client, args):
+        nonlocal count
+        count += 1
+        if count >= 20:
+            raise Exception("max tries reached")
+
+        response = client.chat.completions.create(
+            model="openrouter/free",
+            messages=messages,
+            tools=available_functions,
+        )
+
+        message = response.choices[0].message
+        messages.append(message)
+
+        if message.tool_calls:
+            for tool_call in message.tool_calls:
+                result_message = call_function(tool_call, verbose=args.verbose)
+                if result_message["content"] is None:
+                    raise Exception("empty content returned")
+                messages.append(ChatCompletionToolMessageParam(role="tool", tool_call_id=tool_call.id, content=result_message["content"]))
+        else:
+            if args.verbose:
+                messages.append(ChatCompletionSystemMessageParam(role="system", content=format_use(args.user_prompt, response.usage, message.content)))
+            else:
+                messages.append(ChatCompletionSystemMessageParam(role="system", content=message.content))
+            return messages
+        return inner_func(messages, client, args)
+    return inner_func
 
 def main():
-    args = load_parser()
+    try:
+        args = load_parser()
 
-    api_key = load_api_key()
-    client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=api_key,
-    )
+        api_key = load_api_key()
+        client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key,
+        )
 
-    messages:list[ChatCompletionMessageParam] = [
-        ChatCompletionSystemMessageParam(role="system", content=system_prompt),
-        ChatCompletionUserMessageParam(role="user", content=args.user_prompt),
-    ]
-    response = client.chat.completions.create(
-        model="openrouter/free",
-        messages=messages,
-        tools=available_functions,
-    )
+        messages:list[ChatCompletionMessageParam] = [
+            ChatCompletionSystemMessageParam(role="system", content=system_prompt),
+            ChatCompletionUserMessageParam(role="user", content=args.user_prompt),
+        ]
 
-    message = response.choices[0].message
+        conversation = chat()
+        messages = conversation(messages, client, args)
+        print(f"Final response:\n{messages[-1]["content"]}")
+    except Exception as e:
+        print(e)
+        sys.exit(1)
 
-
-    if message.tool_calls:
-        for tool_call in message.tool_calls:
-            result_message = call_function(tool_call, verbose=args.verbose)
-            if result_message["content"] is None:
-                raise Exception("empty content returned")
-            if args.verbose:
-                print(f"-> {result_message['content']}")
-    else:
-        if args.verbose:
-            print(format_use(args.user_prompt, response.usage, message.content))
-        else:
-            print(message.content)
 if __name__ == "__main__":
     main()
+
